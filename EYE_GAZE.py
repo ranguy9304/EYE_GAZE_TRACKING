@@ -265,21 +265,49 @@ while True:
                 # corresponding to the center of the circle
                 if width/10<=x<width/5:
                     print("1")
+                    cv2.line(r_frame, [int(r_width/10),0], [int(r_width/10),r_height], (25,25,225),5)
+                    cv2.line(r_frame, [int(r_width/5),0], [int(r_width/5),r_height], (25,25,255),5)
+
+
+                    # cv2.rectangle(frame,(x,y),(x1,y1),(0,255,0),2)
                 
                 elif width/5<=x<width*3/10:
+                    cv2.line(r_frame, [int(r_width/5),0], [int(r_width/5),r_height], (25,25,255),5)
+                    cv2.line(r_frame, [int(r_width*3/10),0], [int(r_width*3/10),r_height], (25,25,255),5)
+
                     print("2")
                 elif width*3/10<=x<width*2/5:
+
+                    cv2.line(r_frame, [int(r_width*3/10),0], [int(r_width*3/10),r_height], (25,25,255),5)
+                    cv2.line(r_frame, [int(r_width*2/5),0], [int(r_width*2/5),r_height], (25,25,255),5)
+
+
                     print("3")
 
                 elif width*2/5<=x<width/2:
+
+                    cv2.line(r_frame, [int(r_width*2/5),0], [int(r_width*2/5),r_height], (25,25,255),5)
+                    cv2.line(r_frame, [int(r_width/2),0], [int(r_width/2),r_height], (25,25,255),5)
+
+
                     print("4")
 
                 elif width/2<=x<width*6/10:
+                    cv2.line(r_frame, [int(r_width/2),0], [int(r_width/2),r_height], (25,25,255),5)
+                    cv2.line(r_frame, [int(r_width*6/10),0], [int(r_width*6/10),r_height], (25,25,255),5)
+
+
                     print("5")
                 elif width*6/10<=x<width*7/10:
+                    cv2.line(r_frame, [int(r_width*6/10),0], [int(r_width*6/10),r_height], (25,25,255),5)
+                    cv2.line(r_frame, [int(r_width*7/10),0], [int(r_width*7/10),r_height], (25,25,255),5)
+
+
                     print("6")
 
                 elif width*7/10<=x<width*8/10:
+                    cv2.line(r_frame, [int(r_width*7/10),0], [int(r_width*7/10),r_height], (25,25,255),5)
+
                     print("7")
                 elif width*8/10<=x<width*9/10:
                     print("8")
