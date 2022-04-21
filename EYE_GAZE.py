@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import dlib
 import face_recognition
+import math
 
 ######DRIVER###############
 cap=cv2.VideoCapture('v1_driver.mp4')
@@ -41,8 +42,10 @@ count=0
 while True:
     count=count+1
     r_,r_frame=road.read()
+    road_shape=r_frame.shape
 
     _,frame=cap.read()
+    
     height,width,_=frame.shape
 
     r_frame = cv2.resize(r_frame,(int(width*0.5),int(height*0.5)),fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
@@ -215,31 +218,57 @@ while True:
 
         circles=cv2.HoughCircles(blur,cv2.HOUGH_GRADIENT,2,100,param1=100,param2=20,minRadius=17,maxRadius=27) 
 
+
+           #CHEEK LINE################################################################
+
+        nose_l=(landmarks.part(35).x,landmarks.part(35).y)
+        ear_l=(landmarks.part(15).x,landmarks.part(15).y)
+
+
+        ####DISTANCE OF THE LINE###########
+        dist_cheek=(nose_l[0]-ear_l[0])**2+(nose_l[1]-ear_l[1])**2
+        per_change=((dist_cheek-150000)/150000)*100
+
+        cv2.putText(frame,"ratios: "+str(dist_cheek/150000),(200,200),font,2,(0,0,255),3)
+        cv2.putText(frame,"difference of length: "+str(per_change),(50,400),font,2,(0,0,255),3)
+        cv2.putText(frame,"length of the line: "+str(dist_cheek),(50,600),font,2,(0,0,255),3)
+
+
+
+        if dist_cheek/150000 >1.17:
+            cv2.putText(frame,"RIGHT _L",(50,300),font,2,(0,0,255),3)
+
+
+
+        cheek_l=cv2.line(frame,ear_l,nose_l,(0,255,0),2)
+
+        ####################################################
+
         #################DRAWING RATIO LINES######################################### FOR DRIVER EYE
 
-        cv2.line(blur, [int(width/10),0], [int(width/10),height], (255,255,255),5)
-        cv2.line(blur, [int(width/5),0], [int(width/5),height], (255,255,255),5)
-        cv2.line(blur, [int(width*3/10),0], [int(width*3/10),height], (255,255,255),5)
-        cv2.line(blur, [int(width*2/5),0], [int(width*2/5),height], (255,255,255),5)
-        cv2.line(blur, [int(width/2),0], [int(width/2),height], (255,255,255),5)
-        cv2.line(blur, [int(width*6/10),0], [int(width*6/10),height], (255,255,255),5)
-        cv2.line(blur, [int(width*7/10),0], [int(width*7/10),height], (255,255,255),5)
-        cv2.line(blur, [int(width*8/10),0], [int(width*8/10),height], (255,255,255),5)
-        cv2.line(blur, [int(width*9/10),0], [int(width*9/10),height], (255,255,255),5)
+        no_div=10
+
+        for i in range(no_div):
+            div_w=width*i/no_div
+            cv2.line(blur, [int((div_w)+div_w*per_change/100),0], [int((div_w)+div_w*per_change/100),height], (255,255,255),5)
+
+
+
+        
 #######################################################################################
+
+
 
 
 #################################FOR ROAD#########################################
 
-        cv2.line(r_frame, [int(r_width/10),0], [int(r_width/10),r_height], (255,255,255),5)
-        cv2.line(r_frame, [int(r_width/5),0], [int(r_width/5),r_height], (255,255,255),5)
-        cv2.line(r_frame, [int(r_width*3/10),0], [int(r_width*3/10),r_height], (255,255,255),5)
-        cv2.line(r_frame, [int(r_width*2/5),0], [int(r_width*2/5),r_height], (255,255,255),5)
-        cv2.line(r_frame, [int(r_width/2),0], [int(r_width/2),r_height], (255,255,255),5)
-        cv2.line(r_frame, [int(r_width*6/10),0], [int(r_width*6/10),r_height], (255,255,255),5)
-        cv2.line(r_frame, [int(r_width*7/10),0], [int(r_width*7/10),r_height], (255,255,255),5)
-        cv2.line(r_frame, [int(r_width*8/10),0], [int(r_width*8/10),r_height], (255,255,255),5)
-        cv2.line(r_frame, [int(r_width*9/10),0], [int(r_width*9/10),r_height], (255,255,255),5)
+        
+
+        for i in range(no_div):
+            r_div_w=r_width*i/no_div
+            cv2.line(r_frame, [int(r_div_w+r_div_w*per_change/100),0], [int(r_div_w+r_div_w*per_change/100),r_height], (255,255,255),5)
+
+
 
 
 
@@ -263,54 +292,116 @@ while True:
             for (x, y, r) in circles[0,:]:
                 # draw the circle in the output image, then draw a rectangle
                 # corresponding to the center of the circle
-                if width/10<=x<width/5:
-                    print("1")
-                    cv2.line(r_frame, [int(r_width/10),0], [int(r_width/10),r_height], (25,25,225),5)
-                    cv2.line(r_frame, [int(r_width/5),0], [int(r_width/5),r_height], (25,25,255),5)
+                shape_eye=blur.shape
+
+                print(shape_eye)
+
+            
+                y2=shape_eye[0]/2
+
+                x2=shape_eye[1]
+
+                x1=0
+                y1=shape_eye[0]/2
 
 
-                    # cv2.rectangle(frame,(x,y),(x1,y1),(0,255,0),2)
+                diff_in_x=x1-x2
+                if diff_in_x ==0:
+                    diff_in_x=0.000001
+                slope=(y1-y2)/(diff_in_x)
+                deno=math.sqrt(1+math.pow(slope,2))
+
+                if deno== 0:
+                    deno=0.0001
+
+
+
+                dist_pup=abs((y-y1)-(slope)*(x-x1))/(deno)
+                cv2.putText(frame,"dispalce: "+str(dist_pup),(50,700),font,2,(0,0,255),3)
+                cv2.line(blur, [x1,int(y1)], [x2,int(y2)], (25,25,255),5)
+                print(dist_pup)
+
+                # angle = math.atan(0.26*dist_pup/25)
+                # print(angle/(3.14/2))
+                # r_x=road_shape[0]
+                # r_y=road_shape[1]
+                # cv2.line(r_frame, [0,r_x+r_x*angle/(3.14/2)], [r_y,r_x+r_x*angle/(3.14/2)], (25,25,255),5)
+
+
+
+               
+
+
+
                 
-                elif width/5<=x<width*3/10:
-                    cv2.line(r_frame, [int(r_width/5),0], [int(r_width/5),r_height], (25,25,255),5)
-                    cv2.line(r_frame, [int(r_width*3/10),0], [int(r_width*3/10),r_height], (25,25,255),5)
 
-                    print("2")
-                elif width*3/10<=x<width*2/5:
-
-                    cv2.line(r_frame, [int(r_width*3/10),0], [int(r_width*3/10),r_height], (25,25,255),5)
-                    cv2.line(r_frame, [int(r_width*2/5),0], [int(r_width*2/5),r_height], (25,25,255),5)
+                for i in range(no_div):
+                    if width*i/no_div<=x<width*(i+1)/no_div:
+                        rr_div_w=r_width*i/no_div
+                        rr_div_w_nex=r_width*(i+1)/no_div
+                        cv2.line(r_frame, [int(rr_div_w+rr_div_w*per_change/100),0], [int(rr_div_w+rr_div_w*per_change/100),r_height], (25,25,255),5)
+                        cv2.line(r_frame, [int(rr_div_w_nex+rr_div_w_nex*per_change/100),0], [int(rr_div_w_nex+rr_div_w_nex*per_change/100),r_height], (25,25,255),5)
 
 
-                    print("3")
-
-                elif width*2/5<=x<width/2:
-
-                    cv2.line(r_frame, [int(r_width*2/5),0], [int(r_width*2/5),r_height], (25,25,255),5)
-                    cv2.line(r_frame, [int(r_width/2),0], [int(r_width/2),r_height], (25,25,255),5)
+                        # cv2.line(r_frame, [int(r_width*i/no_div),0], [int(r_width*i/no_div),r_height], (25,25,225),5)
+                        # cv2.line(r_frame, [int(r_width*(i+1)/no_div),0], [int(r_width*(i+1)/no_div),r_height], (25,25,255),5)
 
 
-                    print("4")
 
-                elif width/2<=x<width*6/10:
-                    cv2.line(r_frame, [int(r_width/2),0], [int(r_width/2),r_height], (25,25,255),5)
-                    cv2.line(r_frame, [int(r_width*6/10),0], [int(r_width*6/10),r_height], (25,25,255),5)
-
-
-                    print("5")
-                elif width*6/10<=x<width*7/10:
-                    cv2.line(r_frame, [int(r_width*6/10),0], [int(r_width*6/10),r_height], (25,25,255),5)
-                    cv2.line(r_frame, [int(r_width*7/10),0], [int(r_width*7/10),r_height], (25,25,255),5)
+                # if width/10<=x<width/5:
+                #     print("1")
+                #     cv2.line(r_frame, [int(r_width/10),0], [int(r_width/10),r_height], (25,25,225),5)
+                #     cv2.line(r_frame, [int(r_width/5),0], [int(r_width/5),r_height], (25,25,255),5)
 
 
-                    print("6")
+                #     # cv2.rectangle(frame,(x,y),(x1,y1),(0,255,0),2)
+                
+                # elif width/5<=x<width*3/10:
+                #     cv2.line(r_frame, [int(r_width/5),0], [int(r_width/5),r_height], (25,25,255),5)
+                #     cv2.line(r_frame, [int(r_width*3/10),0], [int(r_width*3/10),r_height], (25,25,255),5)
 
-                elif width*7/10<=x<width*8/10:
-                    cv2.line(r_frame, [int(r_width*7/10),0], [int(r_width*7/10),r_height], (25,25,255),5)
+                #     print("2")
+                # elif width*3/10<=x<width*2/5:
 
-                    print("7")
-                elif width*8/10<=x<width*9/10:
-                    print("8")
+                #     cv2.line(r_frame, [int(r_width*3/10),0], [int(r_width*3/10),r_height], (25,25,255),5)
+                #     cv2.line(r_frame, [int(r_width*2/5),0], [int(r_width*2/5),r_height], (25,25,255),5)
+
+
+                #     print("3")
+
+                # elif width*2/5<=x<width/2:
+
+                #     cv2.line(r_frame, [int(r_width*2/5),0], [int(r_width*2/5),r_height], (25,25,255),5)
+                #     cv2.line(r_frame, [int(r_width/2),0], [int(r_width/2),r_height], (25,25,255),5)
+
+
+                #     print("4")
+
+                # elif width/2<=x<width*6/10:
+                #     cv2.line(r_frame, [int(r_width/2),0], [int(r_width/2),r_height], (25,25,255),5)
+                #     cv2.line(r_frame, [int(r_width*6/10),0], [int(r_width*6/10),r_height], (25,25,255),5)
+
+
+                #     print("5")
+                # elif width*6/10<=x<width*7/10:
+                #     cv2.line(r_frame, [int(r_width*6/10),0], [int(r_width*6/10),r_height], (25,25,255),5)
+                #     cv2.line(r_frame, [int(r_width*7/10),0], [int(r_width*7/10),r_height], (25,25,255),5)
+
+
+                #     print("6")
+
+                # elif width*7/10<=x<width*8/10:
+                #     cv2.line(r_frame, [int(r_width*7/10),0], [int(r_width*7/10),r_height], (25,25,255),5)
+                #     cv2.line(r_frame, [int(r_width*8/10),0], [int(r_width*8/10),r_height], (25,25,255),5)
+
+
+                #     print("7")
+                # elif width*8/10<=x<width*9/10:
+                #     cv2.line(r_frame, [int(r_width*8/10),0], [int(r_width*8/10),r_height], (25,25,255),5)
+                #     cv2.line(r_frame, [int(r_width*9/10),0], [int(r_width*9/10),r_height], (25,25,255),5)
+
+
+                #     print("8")
 
 
 
@@ -331,11 +422,22 @@ while True:
 
 ##################################################################################################3
 
+##################verticle coord reference lines##########################
+        lip_b=(landmarks.part(8).x,landmarks.part(58).y)
+
+        chin=(landmarks.part(8).x,landmarks.part(8).y)
+
+
+
+
+
+
+#####################################################################3
+
 #############IM SHOW ##############################################3
         cv2.imshow("threshold",threshold_eye)
         cv2.imshow("blur",blur)
         # cv2.imshow("mask",left_eye)
-        cv2.imshow("road",r_frame)
 
 
 
@@ -350,33 +452,19 @@ while True:
         right_point=(landmarks.part(45).x,landmarks.part(45).y)
 
         #3#################################################3
-        #CHEEK LINE
-
-        nose_l=(landmarks.part(35).x,landmarks.part(35).y)
-        ear_l=(landmarks.part(15).x,landmarks.part(15).y)
-
-
-        ####DISTANCE OF THE LINE###########
-        dist_cheek=(nose_l[0]-ear_l[0])**2+(nose_l[1]-ear_l[1])**2
-
-        cv2.putText(frame,str(dist_cheek/150000),(200,200),font,2,(0,0,255),3)
-        if dist_cheek/150000 >1.17:
-            cv2.putText(frame,"RIGHT _L",(50,300),font,2,(0,0,255),3)
-
-
-
-        cheek_l=cv2.line(frame,ear_l,nose_l,(0,255,0),2)
-
-        ####################################################
+     
 
 
         
 
         center_top=midpoint(landmarks.part(43),landmarks.part(44))
         center_bottom=midpoint(landmarks.part(47),landmarks.part(46))
+        
 
         hor_line=cv2.line(frame,left_point,right_point,(0,255,0),2)
         ver_line=cv2.line(frame,center_bottom,center_top,(0,255,0),2)
+        hor_line=cv2.line(frame,lip_b,chin,(0,255,0),2)
+
 
         
 
@@ -387,12 +475,15 @@ while True:
 
 
 
-
+#58 9
+#34 52
 
 
 
 
     cv2.imshow("Frame",frame)
+    cv2.imshow("road",r_frame)
+
 
     
     if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -400,4 +491,5 @@ while True:
 
 
 cap.release()
+road.release()
 cv2.destroyAllWindows()
