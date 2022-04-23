@@ -12,6 +12,9 @@ cap=cv2.VideoCapture('v1_driver.mp4')
 #########ROAD####################
 road=cv2.VideoCapture('v1_road.mp4')
 
+cap.set(cv2.CAP_PROP_POS_FRAMES, 10000)
+road.set(cv2.CAP_PROP_POS_FRAMES, 20000)
+
 
 
 
@@ -34,7 +37,7 @@ def maxAndMin(featCoords,mult = 1):
         listX.append(tup[0])
         listY.append(tup[1])
     maxminList = np.array([min(listX)-adj,min(listY)-adj,max(listX)+adj,max(listY)+adj])
-    print(maxminList)
+    # print(maxminList)
     return (maxminList*mult).astype(int), (np.array([sum(listX)/len(listX)-maxminList[0], sum(listY)/len(listY)-maxminList[1]])*mult).astype(int)
 ret_count=0
 count=0
@@ -42,13 +45,14 @@ count=0
 while True:
     count=count+1
     r_,r_frame=road.read()
-    road_shape=r_frame.shape
+    
 
     _,frame=cap.read()
     
     height,width,_=frame.shape
 
     r_frame = cv2.resize(r_frame,(int(width*0.5),int(height*0.5)),fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
+    r_x,r_y,_=r_frame.shape
     gray=cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
     faces=detector(gray)
 
@@ -80,7 +84,7 @@ while True:
     if  ret_count!= count:
         cv2.putText(frame,"NO LOOKING",(80,200),font,2,(0,0,255),3)
 
-        print("oppsie"+str(count))
+        # print("oppsie"+str(count))
         ret_count=count
 
 
@@ -206,11 +210,11 @@ while True:
         # cv2.imshow("Eye",eye)
 
 
-        if threshold_eye is Empty:
+        # if threshold_eye is Empty:
 
 
 
-            print("yo")
+            # print("yo")
 
              #######################detecting hough circles#############################
 
@@ -266,7 +270,7 @@ while True:
 
         for i in range(no_div):
             r_div_w=r_width*i/no_div
-            cv2.line(r_frame, [int(r_div_w+r_div_w*per_change/100),0], [int(r_div_w+r_div_w*per_change/100),r_height], (255,255,255),5)
+            # cv2.line(r_frame, [int(r_div_w+r_div_w*per_change/100),0], [int(r_div_w+r_div_w*per_change/100),r_height], (255,255,255),5)
 
 
 
@@ -294,7 +298,7 @@ while True:
                 # corresponding to the center of the circle
                 shape_eye=blur.shape
 
-                print(shape_eye)
+                # print(shape_eye)
 
             
                 y2=shape_eye[0]/2
@@ -316,16 +320,37 @@ while True:
 
 
 
-                dist_pup=abs((y-y1)-(slope)*(x-x1))/(deno)
+                dist_pup=((y-y1)-(slope)*(x-x1))/(deno)
                 cv2.putText(frame,"dispalce: "+str(dist_pup),(50,700),font,2,(0,0,255),3)
                 cv2.line(blur, [x1,int(y1)], [x2,int(y2)], (25,25,255),5)
-                print(dist_pup)
+                # print(dist_pup)
 
-                # angle = math.atan(0.26*dist_pup/25)
+                angle = math.atan(0.26*dist_pup/25)
+
+                ratio_test=dist_pup/shape_eye[0]
+
+                # print(str(shape_eye))
+
+
+
                 # print(angle/(3.14/2))
                 # r_x=road_shape[0]
                 # r_y=road_shape[1]
-                # cv2.line(r_frame, [0,r_x+r_x*angle/(3.14/2)], [r_y,r_x+r_x*angle/(3.14/2)], (25,25,255),5)
+                # print(str(r_x))
+                ratio=r_x*6/10
+
+                # ratio_mult=angle/(3.14/2)
+                ratio_mult=ratio_test
+                
+                # cv2.line(r_frame, [0,int(ratio)], [int(r_y),int(ratio)], (25,25,255),5)
+
+                # ratio=r_x*3/4
+
+
+                # cv2.line(r_frame, [0,int(ratio+(ratio*ratio_mult))], [int(r_y),int(ratio+(ratio*ratio_mult))], (25,25,255),5)
+
+
+                
 
 
 
@@ -339,8 +364,10 @@ while True:
                     if width*i/no_div<=x<width*(i+1)/no_div:
                         rr_div_w=r_width*i/no_div
                         rr_div_w_nex=r_width*(i+1)/no_div
-                        cv2.line(r_frame, [int(rr_div_w+rr_div_w*per_change/100),0], [int(rr_div_w+rr_div_w*per_change/100),r_height], (25,25,255),5)
-                        cv2.line(r_frame, [int(rr_div_w_nex+rr_div_w_nex*per_change/100),0], [int(rr_div_w_nex+rr_div_w_nex*per_change/100),r_height], (25,25,255),5)
+                        # cv2.line(r_frame, [int(rr_div_w+rr_div_w*per_change/100),0], [int(rr_div_w+rr_div_w*per_change/100),r_height], (25,25,255),5)
+                        # cv2.line(r_frame, [int(rr_div_w_nex+rr_div_w_nex*per_change/100),0], [int(rr_div_w_nex+rr_div_w_nex*per_change/100),r_height], (25,25,255),5)
+
+                        cv2.circle(r_frame,[int(((rr_div_w+rr_div_w*per_change/100)+(rr_div_w_nex+rr_div_w_nex*per_change/100))/2),int(ratio+(ratio*ratio_mult))] , 50, [0,255,0], 5)
 
 
                         # cv2.line(r_frame, [int(r_width*i/no_div),0], [int(r_width*i/no_div),r_height], (25,25,225),5)
@@ -464,6 +491,7 @@ while True:
         hor_line=cv2.line(frame,left_point,right_point,(0,255,0),2)
         ver_line=cv2.line(frame,center_bottom,center_top,(0,255,0),2)
         hor_line=cv2.line(frame,lip_b,chin,(0,255,0),2)
+        
 
 
         
@@ -479,7 +507,10 @@ while True:
 #34 52
 
 
-
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    r_fps = road.get(cv2.CAP_PROP_FPS)
+    # print("frame : "+str(fps))
+    # print("r_frame : "+str(r_fps))
 
     cv2.imshow("Frame",frame)
     cv2.imshow("road",r_frame)
