@@ -7,13 +7,15 @@ import math
 
 ######DRIVER###############
 cap=cv2.VideoCapture('v1_driver.mp4')
+# cords=np.array([])
+cords=[[]]
 
 
 #########ROAD####################
 road=cv2.VideoCapture('v1_road.mp4')
 
-cap.set(cv2.CAP_PROP_POS_FRAMES, 10000)
-road.set(cv2.CAP_PROP_POS_FRAMES, 20000)
+cap.set(cv2.CAP_PROP_POS_FRAMES, 1500)
+road.set(cv2.CAP_PROP_POS_FRAMES, 3000)
 
 
 
@@ -43,7 +45,6 @@ ret_count=0
 count=0
 
 while True:
-    count=count+1
     r_,r_frame=road.read()
     
 
@@ -270,7 +271,7 @@ while True:
 
         for i in range(no_div):
             r_div_w=r_width*i/no_div
-            # cv2.line(r_frame, [int(r_div_w+r_div_w*per_change/100),0], [int(r_div_w+r_div_w*per_change/100),r_height], (255,255,255),5)
+            cv2.line(r_frame, [int(r_div_w+r_div_w*per_change/100),0], [int(r_div_w+r_div_w*per_change/100),r_height], (255,255,255),5)
 
 
 
@@ -346,8 +347,9 @@ while True:
 
                 # ratio=r_x*3/4
 
+                
 
-                # cv2.line(r_frame, [0,int(ratio+(ratio*ratio_mult))], [int(r_y),int(ratio+(ratio*ratio_mult))], (25,25,255),5)
+                cv2.line(r_frame, [0,int(ratio+(ratio*ratio_mult))], [int(r_y),int(ratio+(ratio*ratio_mult))], (25,25,255),5)
 
 
                 
@@ -366,8 +368,12 @@ while True:
                         rr_div_w_nex=r_width*(i+1)/no_div
                         # cv2.line(r_frame, [int(rr_div_w+rr_div_w*per_change/100),0], [int(rr_div_w+rr_div_w*per_change/100),r_height], (25,25,255),5)
                         # cv2.line(r_frame, [int(rr_div_w_nex+rr_div_w_nex*per_change/100),0], [int(rr_div_w_nex+rr_div_w_nex*per_change/100),r_height], (25,25,255),5)
+                        y_cord_gaze=((rr_div_w+rr_div_w*per_change/100)+(rr_div_w_nex+rr_div_w_nex*per_change/100))/2
+                        x_cord_gaze=ratio+(ratio*ratio_mult)
 
-                        cv2.circle(r_frame,[int(((rr_div_w+rr_div_w*per_change/100)+(rr_div_w_nex+rr_div_w_nex*per_change/100))/2),int(ratio+(ratio*ratio_mult))] , 50, [0,255,0], 5)
+                        cords.append((y_cord_gaze,x_cord_gaze))
+
+                        cv2.circle(r_frame,[int(y_cord_gaze),int(x_cord_gaze)] , 50, [0,255,0], 5)
 
 
                         # cv2.line(r_frame, [int(r_width*i/no_div),0], [int(r_width*i/no_div),r_height], (25,25,225),5)
@@ -386,7 +392,7 @@ while True:
                 # elif width/5<=x<width*3/10:
                 #     cv2.line(r_frame, [int(r_width/5),0], [int(r_width/5),r_height], (25,25,255),5)
                 #     cv2.line(r_frame, [int(r_width*3/10),0], [int(r_width*3/10),r_height], (25,25,255),5)
-
+                        
                 #     print("2")
                 # elif width*3/10<=x<width*2/5:
 
@@ -446,6 +452,29 @@ while True:
             cv2.circle(blur
             ,(chosen[0],chosen[1]),chosen[2],(255,0,255),3)
             prevCircle=chosen
+
+            sma_val=10
+
+
+            if count<sma_val:
+                cv2.circle(r_frame,[int(y_cord_gaze),int(x_cord_gaze)] , 50, [0,255,0], 5)
+
+            else:
+                # print(cords[count])
+
+                
+                avg_y=0
+                avg_x=0
+                for i in range(sma_val):
+                    print("c- " +str(count))
+                    print("dis- "+str(count-i))
+
+                    avg_y=avg_y+cords[count][0]
+                    avg_x=avg_x+cords[count][1]
+                avg_y=avg_y/sma_val
+                avg_x=avg_x/sma_val
+            
+                cv2.circle(r_frame,[int(avg_y),int(avg_x)] , 50, [0,255,0], 5)
 
 ##################################################################################################3
 
@@ -515,6 +544,7 @@ while True:
     cv2.imshow("Frame",frame)
     cv2.imshow("road",r_frame)
 
+    count=count+1
 
     
     if cv2.waitKey(1) & 0xFF == ord('q'):
