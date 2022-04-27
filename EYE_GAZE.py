@@ -4,11 +4,17 @@ import numpy as np
 import dlib
 import face_recognition
 import math
+import matplotlib.pyplot as plt
+
+from sklearn import preprocessing
 
 ######DRIVER###############
 cap=cv2.VideoCapture('v1_driver.mp4')
 # cords=np.array([])
-cords=[[]]
+cords=[]
+
+heat_init=0
+
 
 
 #########ROAD####################
@@ -52,10 +58,17 @@ while True:
     
     height,width,_=frame.shape
 
+    
+
     r_frame = cv2.resize(r_frame,(int(width*0.5),int(height*0.5)),fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
     r_x,r_y,_=r_frame.shape
     gray=cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
-    faces=detector(gray)
+    faces=detector(frame)
+
+    if heat_init==0:
+        heat= np.zeros((r_x+20, r_y+20))
+        heat_init=1
+        
 
 
 
@@ -269,9 +282,9 @@ while True:
 
         
 
-        for i in range(no_div):
-            r_div_w=r_width*i/no_div
-            cv2.line(r_frame, [int(r_div_w+r_div_w*per_change/100),0], [int(r_div_w+r_div_w*per_change/100),r_height], (255,255,255),5)
+        # for i in range(no_div):
+        #     r_div_w=r_width*i/no_div
+        #     cv2.line(r_frame, [int(r_div_w+r_div_w*per_change/100),0], [int(r_div_w+r_div_w*per_change/100),r_height], (255,255,255),5)
 
 
 
@@ -308,7 +321,7 @@ while True:
 
                 x1=0
                 y1=shape_eye[0]/2
-
+######################################3   VERTICLE POSITION ######################################################
 
                 diff_in_x=x1-x2
                 if diff_in_x ==0:
@@ -347,9 +360,12 @@ while True:
 
                 # ratio=r_x*3/4
 
-                
 
-                cv2.line(r_frame, [0,int(ratio+(ratio*ratio_mult))], [int(r_y),int(ratio+(ratio*ratio_mult))], (25,25,255),5)
+                ########################################################################################
+
+                ################################# HORIZONTAL LINE ################################################3
+
+                # cv2.line(r_frame, [0,int(ratio+(ratio*ratio_mult))], [int(r_y),int(ratio+(ratio*ratio_mult))], (25,25,255),5)
 
 
                 
@@ -363,6 +379,8 @@ while True:
                 
 
                 for i in range(no_div):
+
+                    ######################################  CHECKING HORIZONTAL  POSITION ##################################3
                     if width*i/no_div<=x<width*(i+1)/no_div:
                         rr_div_w=r_width*i/no_div
                         rr_div_w_nex=r_width*(i+1)/no_div
@@ -370,10 +388,63 @@ while True:
                         # cv2.line(r_frame, [int(rr_div_w_nex+rr_div_w_nex*per_change/100),0], [int(rr_div_w_nex+rr_div_w_nex*per_change/100),r_height], (25,25,255),5)
                         y_cord_gaze=((rr_div_w+rr_div_w*per_change/100)+(rr_div_w_nex+rr_div_w_nex*per_change/100))/2
                         x_cord_gaze=ratio+(ratio*ratio_mult)
+                        # if x_cord_gaze >=540:
+                        #     x_cord_gaze=539
+
+                        # if y_cord_gaze >=540:
+                        #     y_cord_gaze=539
 
                         cords.append((y_cord_gaze,x_cord_gaze))
+                        if count>10:
+                         cords.pop(0)
 
-                        cv2.circle(r_frame,[int(y_cord_gaze),int(x_cord_gaze)] , 50, [0,255,0], 5)
+
+                        ################################    OG CIRCLE ##########################################
+
+                        cv2.circle(r_frame,[int(y_cord_gaze),int(x_cord_gaze)] , 50, [0,0,255], 5)
+
+                        print([int(x_cord_gaze),int(y_cord_gaze)])
+
+                        # area=20
+                        # additor=0.5
+                        # for i in range(1,area):
+                        #     for j in range(1,area):
+                            
+                        #         # heat[int(y_cord_gaze-i),int(x_cord_gaze)] =heat[int(y_cord_gaze-i),int(x_cord_gaze)]+additor
+                        #         # heat[int(y_cord_gaze),int(x_cord_gaze-i)] =heat[int(y_cord_gaze),int(x_cord_gaze-i)]+additor
+                        #         if int(y_cord_gaze-i)>=r_x or int(y_cord_gaze-i)<0:
+                        #             print("bruhhhhhhhhhhhhhhhh")
+                        #             break
+                        #         if int(x_cord_gaze-j)>=r_y or int(x_cord_gaze-j)<0:
+                        #             print("bruhhhhhhhhhhhhhhhh")
+
+                        #             break
+                        #         if int(y_cord_gaze+i)>=r_x or int(y_cord_gaze+i)<0:
+                        #             print("bruhhhhhhhhhhhhhhhh")
+
+                        #             break
+                        #         if int(x_cord_gaze+j)>=r_y or int(x_cord_gaze+j)<0:
+                        #             print("bruhhhhhhhhhhhhhhhh")
+
+                        #             break
+
+
+
+                        #         heat[int(y_cord_gaze-i),int(x_cord_gaze-j)] =additor
+
+                        #         # heat[int(y_cord_gaze+i),int(x_cord_gaze)] =heat[int(y_cord_gaze+i),int(x_cord_gaze)]+additor
+                        #         # heat[int(y_cord_gaze),int(x_cord_gaze+i)] =heat[int(y_cord_gaze),int(x_cord_gaze+i)]+additor
+
+                        #         # heat[int(y_cord_gaze+i),int(x_cord_gaze+j)] =additor
+
+
+
+
+                        # heat[int(y_cord_gaze),int(x_cord_gaze)] =heat[int(y_cord_gaze),int(x_cord_gaze)]+additor
+                        # print([r_x,r_y])
+
+
+                        ###################################################################################
 
 
                         # cv2.line(r_frame, [int(r_width*i/no_div),0], [int(r_width*i/no_div),r_height], (25,25,225),5)
@@ -444,16 +515,75 @@ while True:
 
                 
 
+#############################################################################################################
 
 
 
+            area=5
+            additor=1
+            maxval=0.2
+            for i in range(1,area):
+                for j in range(1,area):
+                
+                    # heat[int(y_cord_gaze-i),int(x_cord_gaze)] =heat[int(y_cord_gaze-i),int(x_cord_gaze)]+additor
+                    # heat[int(y_cord_gaze),int(x_cord_gaze-i)] =heat[int(y_cord_gaze),int(x_cord_gaze-i)]+additor
+                    # if int(y_cord_gaze-i)>=r_x or int(y_cord_gaze-i)<0:
+                    #     print("bruhhhhhhhhhhhhhhhh")
+                    #     break
+                    # if int(x_cord_gaze-j)>=r_y or int(x_cord_gaze-j)<0:
+                    #     print("bruhhhhhhhhhhhhhhhh")
+
+                    #     break
+                    # if int(y_cord_gaze+i)>=r_x or int(y_cord_gaze+i)<0:
+                    #     print("bruhhhhhhhhhhhhhhhh")
+
+                    #     break
+                    # if int(x_cord_gaze+j)>=r_y or int(x_cord_gaze+j)<0:
+                    #     print("bruhhhhhhhhhhhhhhhh")
+
+                    #     break
+
+                    # print([int(y_cord_gaze),int(x_cord_gaze)])
+
+
+
+                    # heat[int(y_cord_gaze-i),int(x_cord_gaze-j)] =additor
+
+                    # heat[int(y_cord_gaze+i),int(x_cord_gaze)] =heat[int(y_cord_gaze+i),int(x_cord_gaze)]+additor
+                    # heat[int(y_cord_gaze),int(x_cord_gaze+i)] =heat[int(y_cord_gaze),int(x_cord_gaze+i)]+additor
+
+                    # try:
+
+                    # heat[int(y_cord_gaze+i),int(x_cord_gaze+j)] =heat[int(y_cord_gaze+i),int(x_cord_gaze+j)]+additor
+                    # heat[int(y_cord_gaze),int(x_cord_gaze+i)] =heat[int(y_cord_gaze),int(x_cord_gaze+i)]+additor
+                    # if heat[int(x_cord_gaze+i),int(y_cord_gaze+j)]==0:
+                    if maxval<heat[int(x_cord_gaze+i),int(y_cord_gaze+j)] :
+                        maxval=heat[int(x_cord_gaze+i),int(y_cord_gaze+j)] 
+
+                    heat[int(x_cord_gaze+i),int(y_cord_gaze+j)] =additor
+                    
+                    # else:
+                    #     heat[int(x_cord_gaze+i),int(y_cord_gaze+j)] =additor+heat[int(x_cord_gaze+i),int(y_cord_gaze+j)]
+
+                    # except:
+                    #     print("bruh moment")
+
+
+
+            # try:
+            heat[int(x_cord_gaze),int(y_cord_gaze)] =additor
+            # except:
+            #     print("bruhhh moment")
+            # # print([r_x,r_y])
+
+            ################################################################################################3
             cv2.circle(blur
             ,(chosen[0],chosen[1]),1,(0,100,100),3)
             cv2.circle(blur
             ,(chosen[0],chosen[1]),chosen[2],(255,0,255),3)
             prevCircle=chosen
 
-            sma_val=10
+            sma_val=3
 
 
             if count<sma_val:
@@ -466,11 +596,11 @@ while True:
                 avg_y=0
                 avg_x=0
                 for i in range(sma_val):
-                    print("c- " +str(count))
-                    print("dis- "+str(count-i))
+                    # print("c- " +str(count))
+                    # print("dis- "+str(count-i))
 
-                    avg_y=avg_y+cords[count][0]
-                    avg_x=avg_x+cords[count][1]
+                    avg_y=avg_y+cords[i][0]
+                    avg_x=avg_x+cords[i][1]
                 avg_y=avg_y/sma_val
                 avg_x=avg_x/sma_val
             
@@ -538,17 +668,54 @@ while True:
 
     fps = cap.get(cv2.CAP_PROP_FPS)
     r_fps = road.get(cv2.CAP_PROP_FPS)
+    # print(heat)
     # print("frame : "+str(fps))
     # print("r_frame : "+str(r_fps))
+    # print(data)
+    
+    # Convert list to an array
+    # numpyArray = np.array(data)
+
+
+
+    min_max_scaler = preprocessing.MinMaxScaler()
+
+    if count%1000==0:
+      
+     
+     
+     scaler = min_max_scaler.fit_transform(heat)
+     plt.imshow( scaler , cmap = 'autumn' , interpolation = 'nearest' )
+        
+     plt.savefig('plots/saved_figure'+str(count)+'.png')
+    
+    plt.title( "2-D Heat Map" )
+    plt.show()
 
     cv2.imshow("Frame",frame)
     cv2.imshow("road",r_frame)
+    print(count)
 
     count=count+1
 
     
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
+
+
+# result = heat.items()
+  
+# # Convert object to a list
+# data = list(result)
+  
+# # Convert list to an array
+# numpyArray = np.array(data)
+
+# plt.imshow( data , cmap = 'autumn' , interpolation = 'nearest' )
+  
+# plt.title( "2-D Heat Map" )
+# plt.show()
+
 
 
 cap.release()
